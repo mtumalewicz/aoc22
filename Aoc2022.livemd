@@ -1,0 +1,48 @@
+# AoC2022/01
+
+```elixir
+Mix.install([
+  {:memoize, "~> 1.4"},
+  {:tesla, "~> 1.4"}
+])
+
+defmodule Api do
+  use Tesla
+  use Memoize
+
+  @session System.fetch_env!("AOC_SESSION_COOKIE")
+
+  plug(Tesla.Middleware.BaseUrl, "https://adventofcode.com/2022/day/")
+
+  plug(Tesla.Middleware.Headers, [
+    {"cookie", "session=#{@session}"}
+  ])
+
+  defmemo get_input(day) do
+    {:ok, response} = get("#{day}/input")
+    response.body
+  end
+end
+```
+
+## Day 1
+
+```elixir
+calories_per_elf =
+  Api.get_input(1)
+  |> String.split("\n\n")
+  |> Enum.map(fn inventory ->
+    inventory
+    |> String.split("\n", trim: true)
+    |> Enum.map(fn item ->
+      String.to_integer(item)
+    end)
+    |> Enum.sum()
+  end)
+
+p1 = calories_per_elf |> Enum.max()
+
+p2 = calories_per_elf |> Enum.sort(:desc) |> Enum.take(3) |> Enum.sum()
+
+{p1, p2}
+```
