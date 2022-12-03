@@ -98,3 +98,53 @@ p2 =
 
 {p1, p2}
 ```
+
+## Day 3
+
+```elixir
+# Starts with 0 so priority list index correspond to item priority
+priority = "0abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+input = Api.get_input(3)
+
+p1 =
+  input
+  |> String.split("\n", trim: true)
+  |> Enum.map(fn rucksack ->
+    {compartment1, compartment2} =
+      rucksack
+      |> String.split_at(div(String.length(rucksack), 2))
+
+    Enum.find(String.codepoints(compartment1), fn itemInCompartment1 ->
+      Enum.find(String.codepoints(compartment2), fn itemInCompartment2 ->
+        itemInCompartment1 == itemInCompartment2
+      end)
+    end)
+  end)
+  |> Enum.map(fn item ->
+    String.codepoints(priority)
+    |> Enum.find_index(fn p -> p == item end)
+  end)
+  |> Enum.sum()
+
+p2 =
+  input
+  |> String.split("\n", trim: true)
+  |> Enum.chunk_every(3)
+  |> Enum.map(fn [rucksack1, rucksack2, rucksack3] ->
+    Enum.find(String.codepoints(rucksack1), fn itemInRucksack1 ->
+      Enum.find(String.codepoints(rucksack2), fn itemInRucksack2 ->
+        Enum.find(String.codepoints(rucksack3), fn itemInRucksack3 ->
+          itemInRucksack1 == itemInRucksack2 and
+            itemInRucksack2 == itemInRucksack3
+        end)
+      end)
+    end)
+  end)
+  |> Enum.map(fn item ->
+    String.codepoints(priority)
+    |> Enum.find_index(fn p -> p == item end)
+  end)
+  |> Enum.sum()
+
+{p1, p2}
+```
