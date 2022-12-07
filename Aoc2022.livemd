@@ -203,6 +203,55 @@ defmodule Transpose do
     [Enum.map(a, &hd/1) | transpose(Enum.map(a, &tl/1))]
   end
 end
+
+defmodule Stack do
+  @moduledoc """
+  Stack is a stack of values
+  """
+
+  @typedoc "a value stored on the stack"
+  @type value :: any
+
+  @typedoc "a stack"
+  @type t :: %Stack{array: [value]}
+  defstruct array: []
+
+  @doc """
+  Return a new Stack
+  """
+  @spec new() :: Stack.t()
+  def new do
+    %Stack{}
+  end
+
+  @doc """
+  Return the size of the Stack
+  """
+  @spec size(Stack.t()) :: non_neg_integer
+  def size(%Stack{array: array}) do
+    length(array)
+  end
+
+  @doc """
+  Push a value onto the Stack
+  """
+  @spec push(value, Stack.t()) :: Stack.t()
+  def push(%Stack{array: array}, item) do
+    %Stack{array: [item | array]}
+  end
+
+  @doc """
+  Pop the last value off the Stack
+  """
+  @spec pop(Stack.t()) :: {value, Stack.t()}
+  def pop(%Stack{array: [item | rest]}) do
+    {item, %Stack{array: rest}}
+  end
+
+  def pop(stack = %Stack{array: []}) do
+    {nil, stack}
+  end
+end
 ```
 
 ```elixir
@@ -218,15 +267,20 @@ move 2 from 2 to 1
 move 1 from 1 to 2
 "
 
-[stacks, procedure] =
+[crates, procedure] =
   test_input
   |> String.split("\n\n", trim: true)
   |> Enum.map(fn x -> String.split(x, "\n", trim: true) end)
 
-processed_stacks =
-  stacks
-  |> Enum.map(fn x ->
-    x
+moves =
+  procedure
+  |> Enum.map(fn x -> String.split(x, " ") end)
+  |> Enum.map(fn x -> Enum.drop_every(x, 2) end)
+
+stacks =
+  crates
+  |> Enum.map(fn crates_row ->
+    crates_row
     |> String.codepoints()
     |> Enum.chunk_every(4)
     |> Enum.map(fn x ->
@@ -235,18 +289,32 @@ processed_stacks =
     end)
   end)
   |> Transpose.transpose()
-  |> Enum.map(fn x -> Enum.reject(x, fn x -> x == " " end) end)
+  |> Enum.map(fn column ->
+    [stack | crates] =
+      Enum.reject(column, fn x ->
+        x == " "
+      end)
+      |> Enum.reverse()
 
-processed_procedure =
-  procedure
-  |> Enum.map(fn x -> String.split(x, " ") end)
-  |> Enum.map(fn x -> Enum.drop_every(x, 2) end)
+    Map.new(%{stack => Enum.reverse(crates)})
+  end)
+  |> Enum.reduce(fn x, acc ->
+  Map.merge(x, acc, fn _key, map1, map2 ->
+    for {k, v1} <- map1, into: %{}, do: {k, v1 + map2[k]}
+  end)
+end)
 
 p1 =
-  processed_procedure
-  |> Enum.map(fn [m, f, t] ->
-    Enum.map(1..m, fn ->
-      {x, tail} = List.pop_at(processed_stacks, f - 1)
+  moves
+  |> Enum.map(fn [move, from, to] ->
+    Map.get_and_update(stacks, from, fn crates ->
+      Enum.slice(crates, )
     end)
   end)
+```
+
+```elixir
+list = ["d", "z"]
+
+Enum.slice(list, 0..0)
 ```
