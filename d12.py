@@ -20,7 +20,11 @@ class Graph:
     print("Vertex Distance from Source")
     for i in range(self.V):
       print("{0}\t\t{1}".format(i, dist[i]))
- 
+  
+  def print(self, dist, node):
+    print("Vertex Distance from Source")
+    print("Node:", node, dist[node])
+
   # The main function that finds shortest distances from src to
   # all other vertices using Bellman-Ford algorithm. The function
   # also detects negative weight cycle
@@ -54,6 +58,7 @@ class Graph:
 
     # print all distance
     self.printArr(dist)
+    self.print(dist, 21)
 
 
 g = Graph(width*height)
@@ -62,24 +67,24 @@ index = 0
 for y in range(height):
   for x in range(width):
     if x != width-1:
-      if (weight.index(data[y][x+1]) - weight.index(data[y][x]) <= 1) and (weight.index(data[y][x+1]) - weight.index(data[y][x]) >= 0):
+      if (weight.index(data[y][x+1]) - weight.index(data[y][x]) <= 1):
         print("add edge", data[y][x], data[y][x+1])
         g.addEdge(index, index+1, 1)
     if y != height-1:
-      if (weight.index(data[y+1][x]) - weight.index(data[y][x]) <= 1) and (weight.index(data[y+1][x]) - weight.index(data[y][x]) >= 0):
+      if (weight.index(data[y+1][x]) - weight.index(data[y][x]) <= 1):
         print("add edge", data[y][x], data[y+1][x])
         g.addEdge(index, index+width, 1)
     if x != 0:
-      if (weight.index(data[y][x-1]) - weight.index(data[y][x]) <= 1) and (weight.index(data[y][x-1]) - weight.index(data[y][x]) >= 0):
+      if (weight.index(data[y][x-1]) - weight.index(data[y][x]) <= 1):
         print("add edge", data[y][x], data[y][x-1])
         g.addEdge(index, index-1, 1)
     if y != 0:
-      if (weight.index(data[y-1][x]) - weight.index(data[y][x]) <= 1) and (weight.index(data[y-1][x]) - weight.index(data[y][x]) >= 0):
+      if (weight.index(data[y-1][x]) - weight.index(data[y][x]) <= 1):
         print("add edge", data[y][x], data[y-1][x])
         g.addEdge(index, index-width, 1)
 
     index += 1
 
-g.BellmanFord(1220)
+g.BellmanFord(0)
 
 print(width)
