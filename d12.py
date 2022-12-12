@@ -1,4 +1,4 @@
-file = open('test_data', 'r')
+file = open('data', 'r')
 data = file.read().splitlines()
 
 width = len(data[0])
@@ -58,33 +58,47 @@ class Graph:
 
     # print all distance
     self.printArr(dist)
-    self.print(dist, 21)
-
+    return dist
 
 g = Graph(width*height)
 index = 0
 
+# for part 2 im loking from E to S, so comparision needs to be changed from
+# `<= 1` to `>= -1` to preserve "elevation of the destination square can be much
+# lower than the elevation of your current square" rule
 for y in range(height):
   for x in range(width):
     if x != width-1:
-      if (weight.index(data[y][x+1]) - weight.index(data[y][x]) <= 1):
-        print("add edge", data[y][x], data[y][x+1])
+      if (weight.index(data[y][x+1]) - weight.index(data[y][x]) >= -1):
         g.addEdge(index, index+1, 1)
     if y != height-1:
-      if (weight.index(data[y+1][x]) - weight.index(data[y][x]) <= 1):
-        print("add edge", data[y][x], data[y+1][x])
+      if (weight.index(data[y+1][x]) - weight.index(data[y][x]) >= -1):
         g.addEdge(index, index+width, 1)
     if x != 0:
-      if (weight.index(data[y][x-1]) - weight.index(data[y][x]) <= 1):
-        print("add edge", data[y][x], data[y][x-1])
+      if (weight.index(data[y][x-1]) - weight.index(data[y][x]) >= -1):
         g.addEdge(index, index-1, 1)
     if y != 0:
-      if (weight.index(data[y-1][x]) - weight.index(data[y][x]) <= 1):
-        print("add edge", data[y][x], data[y-1][x])
+      if (weight.index(data[y-1][x]) - weight.index(data[y][x]) >= -1):
         g.addEdge(index, index-width, 1)
 
     index += 1
 
-g.BellmanFord(0)
+arr = g.BellmanFord(1256)
 
-print(width)
+indexesOfA = []
+iter = 0
+for y in data:
+  for c in y:
+    if c == "a":
+      indexesOfA.append(iter)
+    iter += 1
+
+print("Indexes of A")
+print(indexesOfA)
+
+arrayA = []
+for a in indexesOfA:
+  arrayA.append(arr[a])
+print("Shortest A's")
+print(arrayA)
+print(min(arrayA))
