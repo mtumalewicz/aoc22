@@ -203,55 +203,6 @@ defmodule Transpose do
     [Enum.map(a, &hd/1) | transpose(Enum.map(a, &tl/1))]
   end
 end
-
-defmodule Stack do
-  @moduledoc """
-  Stack is a stack of values
-  """
-
-  @typedoc "a value stored on the stack"
-  @type value :: any
-
-  @typedoc "a stack"
-  @type t :: %Stack{array: [value]}
-  defstruct array: []
-
-  @doc """
-  Return a new Stack
-  """
-  @spec new() :: Stack.t()
-  def new do
-    %Stack{}
-  end
-
-  @doc """
-  Return the size of the Stack
-  """
-  @spec size(Stack.t()) :: non_neg_integer
-  def size(%Stack{array: array}) do
-    length(array)
-  end
-
-  @doc """
-  Push a value onto the Stack
-  """
-  @spec push(value, Stack.t()) :: Stack.t()
-  def push(%Stack{array: array}, item) do
-    %Stack{array: [item | array]}
-  end
-
-  @doc """
-  Pop the last value off the Stack
-  """
-  @spec pop(Stack.t()) :: {value, Stack.t()}
-  def pop(%Stack{array: [item | rest]}) do
-    {item, %Stack{array: rest}}
-  end
-
-  def pop(stack = %Stack{array: []}) do
-    {nil, stack}
-  end
-end
 ```
 
 ```elixir
@@ -267,8 +218,10 @@ move 2 from 2 to 1
 move 1 from 1 to 2
 "
 
+input = Api.get_input(5)
+
 [crates, procedure] =
-  test_input
+  input
   |> String.split("\n\n", trim: true)
   |> Enum.map(fn x -> String.split(x, "\n", trim: true) end)
 
@@ -299,22 +252,189 @@ stacks =
     Map.new(%{stack => Enum.reverse(crates)})
   end)
   |> Enum.reduce(fn x, acc ->
-  Map.merge(x, acc, fn _key, map1, map2 ->
-    for {k, v1} <- map1, into: %{}, do: {k, v1 + map2[k]}
+    Map.merge(x, acc, fn _key, map1, map2 ->
+      for {k, v1} <- map1, into: %{}, do: {k, v1 + map2[k]}
+    end)
   end)
-end)
 
 p1 =
   moves
-  |> Enum.map(fn [move, from, to] ->
-    Map.get_and_update(stacks, from, fn crates ->
-      Enum.slice(crates, )
-    end)
+  |> Enum.reduce(stacks, fn [count, from, to], updated_stacks ->
+    {crate, rest_of_stack} =
+      Map.get_and_update(updated_stacks, from, fn _ ->
+        Enum.split(updated_stacks[from], String.to_integer(count))
+      end)
+
+    rest_of_stack
+    |> Map.update!(to, fn x -> List.flatten([Enum.reverse(crate) | x]) end)
+  end)
+  |> Map.values()
+  |> Enum.map(fn x -> List.first(x) end)
+  |> Enum.join()
+
+p2 =
+  moves
+  |> Enum.reduce(stacks, fn [count, from, to], updated_stacks ->
+    {crate, rest_of_stack} =
+      Map.get_and_update(updated_stacks, from, fn _ ->
+        Enum.split(updated_stacks[from], String.to_integer(count))
+      end)
+
+    rest_of_stack
+    |> Map.update!(to, fn x -> List.flatten([crate | x]) end)
+  end)
+  |> Map.values()
+  |> Enum.map(fn x -> List.first(x) end)
+  |> Enum.join()
+
+{p1, p2}
+```
+
+## Day 6
+
+```elixir
+test_input = "mjqjpqmgbljsphdztnvjfqwrcgsmlb"
+
+input = Api.get_input(6)
+
+p1 =
+  {packet_marker, index} =
+  input
+  |> String.to_charlist()
+  |> Enum.chunk_every(4, 1, [])
+  |> Enum.with_index()
+  |> Enum.find(fn {sequence, index} ->
+    Enum.frequencies(sequence)
+    |> Map.to_list()
+    |> length() > 3
+  end)
+
+# index + 4
+
+p2 =
+  {message_marker, index} =
+  input
+  |> String.to_charlist()
+  |> Enum.chunk_every(14, 1, [])
+  |> Enum.with_index()
+  |> Enum.find(fn {sequence, index} ->
+    Enum.frequencies(sequence)
+    |> Map.to_list()
+    |> length() > 13
+  end)
+
+# index + 14
+```
+
+## Day 7
+
+```elixir
+test_input = "$ cd /
+$ ls
+dir a
+14848514 b.txt
+8504156 c.dat
+dir d
+$ cd a
+$ ls
+dir e
+29116 f
+2557 g
+62596 h.lst
+$ cd e
+$ ls
+584 i
+$ cd ..
+$ cd ..
+$ cd d
+$ ls
+4060174 j
+8033020 d.log
+5626152 d.ext
+7214296 k
+"
+
+input = Api.get_input(7)
+```
+
+```elixir
+tree = %{}
+
+parse_command = fn command ->
+  case List.first(command) do
+    "cd" ->
+      {
+        List.last(command),
+        Map.put_new(tree, List.last(command), %{})
+      }
+
+    "ls" ->
+      nil
+  end
+end
+
+parse_data = fn x -> x |> IO.inspect(label: "data") end
+
+test_input
+|> String.split("$ cd ..", trim: true)
+|> Enum.map(fn tree_level ->
+  String.trim(tree_level)
+  |> String.split("\n")
+
+  # |> Enum.reduce(fn line, new_tree ->
+  #   list =
+  #     line
+  #     |> String.split(" ")
+
+  #   case List.first(list) do
+  #     "$" ->
+  #       [_ | command] = list
+  #       parse_command.(command)
+  #   end
+  # end)
+end)
+
+# case List.first(list) do
+#   "$" ->
+#     [prefix | command] = list
+#     parse_command.(command)
+#   _ -> parse_data.(list)
+# end
+# |> IO.inspect()
+```
+
+## Day 8
+
+```elixir
+test_input = "30373
+25512
+65332
+33549
+35390"
+
+mapped_input = %{}
+
+p1 =
+  test_input
+  |> String.replace("\n", "")
+  |> String.to_charlist()
+  |> Enum.chunk_every(5)
+
+left_view =
+  p1
+  |> Enum.map(fn row ->
+    row
+    |> Enum.chunk_every(2, 1, :discard)
+    |> Enum.count(fn [x, y] -> y > x end)
   end)
 ```
 
 ```elixir
-list = ["d", "z"]
+list = [3, 0, 3, 7, 3]
 
-Enum.slice(list, 0..0)
+list
+|> Enum.chunk_every(2, 1, :discard)
+|> Enum.reduce(fn [x, y], acc ->
+  nil
+end)
 ```
